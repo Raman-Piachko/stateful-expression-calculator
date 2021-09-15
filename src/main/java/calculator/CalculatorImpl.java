@@ -37,23 +37,22 @@ public class CalculatorImpl implements Calculator {
         printWriter.printf(String.valueOf(result));
     }
 
-
     @Override
     public void putNewData(HttpServletRequest request, HttpServletResponse response) throws IOException {
         InputStreamReader streamReader = new InputStreamReader(request.getInputStream());
         BufferedReader bufferedReader = new BufferedReader(streamReader);
         String paramValue = bufferedReader.readLine();
 
-        addParametersToRepository(request, response, paramValue, repositoryImpl);
+        addParametersToRepository(request, paramValue, repositoryImpl);
     }
 
-    private void addParametersToRepository(HttpServletRequest request, HttpServletResponse resp, String paramValue, Repository repositoryImpl) {
+    private void addParametersToRepository(HttpServletRequest request, String paramValue, Repository repositoryImpl) {
         String sessionID = getSessionId(request);
         if (!repositoryImpl.getRepositoryData().containsKey(sessionID)) {
             repositoryImpl.updateRepositoryData(sessionID, new ConcurrentHashMap<>());
         }
-        repositoryImpl.getRepositoryData().get(sessionID).put(getNameParameter(request), paramValue);
 
+        repositoryImpl.getRepositoryData().get(sessionID).put(getNameParameter(request), paramValue);
     }
 
     private String getNameParameter(HttpServletRequest request) {
@@ -98,5 +97,4 @@ public class CalculatorImpl implements Calculator {
         return expression.stream()
                 .anyMatch(map::containsKey);
     }
-
 }
