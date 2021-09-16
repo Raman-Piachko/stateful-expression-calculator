@@ -13,4 +13,6 @@ public final class CalculatorConstants {
     public static final String DIVIDE = "/";
     public static final String MULTIPLY = "*";
     public static final int ABS_RANGE = 10000;
+    public static final String OVER_RANGE = "VALUE is OVER RANGE!!!";
+    public static final String WRONG_EXPRESSION = "WRONG FORMAT EXPRESSION";
 }

@@ -34,6 +34,8 @@ public class CalcServlet extends HttpServlet {
 
     @Override
     protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String requestURI = request.getRequestURI();
         calculator.putNewData(request, response);
+        response.addHeader("Location", requestURI);
     }
 }

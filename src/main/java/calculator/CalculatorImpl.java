@@ -21,7 +21,9 @@ import static calculator.CalculatorConstants.EMPTY_SYMBOL;
 import static calculator.CalculatorConstants.EXPRESSION;
 import static calculator.CalculatorConstants.MINUS;
 import static calculator.CalculatorConstants.MULTIPLY;
+import static calculator.CalculatorConstants.OVER_RANGE;
 import static calculator.CalculatorConstants.PLUS;
+import static calculator.CalculatorConstants.WRONG_EXPRESSION;
 import static utils.ConversionUtil.deleteSpacesAndConvertListToString;
 
 
@@ -63,15 +65,16 @@ public class CalculatorImpl implements Calculator {
                 .get(sessionID);
     }
 
-    private void addParametersToRepository(HttpServletRequest request, HttpServletResponse response, String paramValue, Repository repositoryImpl) {
+    private void addParametersToRepository(HttpServletRequest request, HttpServletResponse response, String paramValue, Repository repositoryImpl) throws IOException {
         String sessionID = getSessionId(request);
         if (!repositoryImpl.getRepositoryData().containsKey(sessionID)) {
             repositoryImpl.updateRepositoryData(sessionID, new ConcurrentHashMap<>());
         }
-        response.setStatus(getStatusCode(request, paramValue));
+        setStatusCode(request, response, paramValue);
         if (!isBadFormatExpression(paramValue, request) && !isParameterHasOverLimitValue(paramValue)) {
             getDataBySessionID(sessionID).put(getParameterName(request), paramValue);
         }
+
     }
 
     private String getParameterName(HttpServletRequest request) {
@@ -119,15 +122,15 @@ public class CalculatorImpl implements Calculator {
         return expression.stream().anyMatch(map::containsKey);
     }
 
-    private int getStatusCode(HttpServletRequest request, String paramValue) {
+    private void setStatusCode(HttpServletRequest request, HttpServletResponse response, String paramValue) throws IOException {
         if (getValueFromRepository(request) == null) {
-            return 201;
+            response.setStatus(HttpServletResponse.SC_CREATED);
         } else if (isParameterHasOverLimitValue(paramValue)) {
-            return 403;
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, OVER_RANGE);
         } else if (isBadFormatExpression(paramValue, request)) {
-            return 400;
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, WRONG_EXPRESSION);
         } else {
-            return 200;
+            response.setStatus(HttpServletResponse.SC_OK);
         }
     }
 
