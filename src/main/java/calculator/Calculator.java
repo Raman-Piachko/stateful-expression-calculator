@@ -9,4 +9,6 @@ public interface Calculator {
     void calculate(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException;
 
     void putNewData(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException;
+
+    void deleteData(HttpServletRequest request, HttpServletResponse response);
 }

@@ -17,18 +17,23 @@ public class CalcServlet extends HttpServlet {
     private static final Calculator calculator = factory.createCalculator();
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        calculator.calculate(request, response);
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) {
+        try {
+            calculator.calculate(request, response);
+            response.setStatus(200);
+        } catch (Exception e) {
+            response.setStatus(409);
+        }
     }
 
     @Override
-    protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doDelete(HttpServletRequest request, HttpServletResponse response) {
+        calculator.deleteData(request, response);
+        response.setStatus(204);
     }
 
     @Override
     protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         calculator.putNewData(request, response);
     }
-
-
 }

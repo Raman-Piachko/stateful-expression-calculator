@@ -21,6 +21,5 @@ public class HttpSessionLogListener implements HttpSessionListener {
         HttpSession session = sessionEvent.getSession();
         ServletContext servletContext = session.getServletContext();
         servletContext.log(String.format(SESSION_ID_FINISHED, session.getId()));
-
     }
 }
