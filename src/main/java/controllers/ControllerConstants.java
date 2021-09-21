@@ -1,8 +1,8 @@
-package calculator;
+package controllers;
 
-public final class CalculatorConstants {
+public final class ControllerConstants {
 
-    private CalculatorConstants() {
+    private ControllerConstants() {
     }
 
     public static final String EMPTY_SYMBOL = "";
@@ -15,4 +15,5 @@ public final class CalculatorConstants {
     public static final int ABS_RANGE = 10000;
     public static final String OVER_RANGE = "VALUE is OVER RANGE!!!";
     public static final String WRONG_EXPRESSION = "WRONG FORMAT EXPRESSION";
+    public static final String LOCATION = "Location";
 }

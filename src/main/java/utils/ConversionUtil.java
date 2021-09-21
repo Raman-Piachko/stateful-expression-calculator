@@ -2,8 +2,8 @@ package utils;
 
 import java.util.List;
 
-import static calculator.CalculatorConstants.EMPTY_SYMBOL;
-import static calculator.CalculatorConstants.SPACES;
+import static controllers.ControllerConstants.EMPTY_SYMBOL;
+import static controllers.ControllerConstants.SPACES;
 
 public class ConversionUtil {
 
