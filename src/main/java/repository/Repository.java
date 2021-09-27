@@ -1,10 +1,14 @@
 package repository;
 
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Map;
 
 public interface Repository {
 
-    ConcurrentHashMap<String, ConcurrentHashMap<String, String>> getRepositoryData();
+    Map<String, Map<String, String>> getRepositoryData();
 
-    void updateRepositoryData(String sessionID, ConcurrentHashMap<Object, Object> objectObjectConcurrentHashMap);
+    void putNewData(String sessionID);
+
+    void update(String sessionID, String parameterName, String paramValue);
+
+    Map<String, String> getDataByID(String sessionID);
 }

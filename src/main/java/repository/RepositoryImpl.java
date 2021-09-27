@@ -1,11 +1,12 @@
 package repository;
 
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class RepositoryImpl implements Repository {
     private static Repository repositoryImpl;
 
-    private ConcurrentHashMap<String, ConcurrentHashMap<String, String>> repositoryData = new ConcurrentHashMap<>();
+    private Map<String, Map<String, String>> repositoryData = new ConcurrentHashMap<>();
 
     private RepositoryImpl() {
     }
@@ -17,15 +18,24 @@ public final class RepositoryImpl implements Repository {
         return repositoryImpl;
     }
 
-    public void updateRepositoryData(String key, ConcurrentHashMap value) {
-        repositoryData.put(key, value);
+    public void putNewData(String key) {
+        repositoryData.put(key, new ConcurrentHashMap<>());
     }
 
-    public ConcurrentHashMap<String, ConcurrentHashMap<String, String>> getRepositoryData() {
+    public Map<String, Map<String, String>> getRepositoryData() {
         return repositoryData;
     }
 
-    public void setRepositoryData(ConcurrentHashMap<String, ConcurrentHashMap<String, String>> repositoryData) {
+    public void setRepositoryData(Map<String, Map<String, String>> repositoryData) {
         this.repositoryData = repositoryData;
+    }
+
+    public Map<String, String> getDataByID(String sessionID) {
+        return getRepositoryData().get(sessionID);
+    }
+
+    public void update(String ID, String parameterName, String paramValue) {
+        getDataByID(ID)
+                .put(parameterName, paramValue);
     }
 }

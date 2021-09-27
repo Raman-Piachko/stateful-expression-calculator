@@ -5,9 +5,10 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 public interface Controller {
-    String getFinalExpression(HttpServletRequest httpServletRequest);
 
-    void deleteData(HttpServletRequest request);
+    void deleteData(HttpServletRequest request, HttpServletResponse response);
 
     void putNewData(HttpServletRequest request, HttpServletResponse response) throws IOException;
+
+    void getResult(HttpServletRequest request, HttpServletResponse response);
 }

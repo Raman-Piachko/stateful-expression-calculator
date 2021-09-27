@@ -5,6 +5,6 @@ public class WebCalculatorFactory {
     }
 
     public Calculator createCalculator() {
-        return new CalculatorImpl();
+        return new CalculatorService();
     }
 }

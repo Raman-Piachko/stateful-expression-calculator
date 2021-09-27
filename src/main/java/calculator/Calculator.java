@@ -1,8 +1,9 @@
 package calculator;
 
-import javax.servlet.ServletException;
-import java.io.IOException;
-
 public interface Calculator {
-    int calculate(String expression) throws ServletException, IOException;
+    int calculate(String expression);
+
+    int addData(String sessionID, String parameterName, String paramValue);
+
+    void deleteData(String sessionID, String parameterName);
 }
