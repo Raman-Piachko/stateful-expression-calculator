@@ -15,17 +15,17 @@ public class CalcServlet extends HttpServlet {
     private static final Controller servletController = new ServletController();
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         servletController.getResult(request, response);
     }
 
     @Override
-    protected void doDelete(HttpServletRequest request, HttpServletResponse response) {
+    protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException {
         servletController.deleteData(request, response);
     }
 
     @Override
     protected void doPut(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        servletController.putNewData(request, response);
+        servletController.putData(request, response);
     }
 }

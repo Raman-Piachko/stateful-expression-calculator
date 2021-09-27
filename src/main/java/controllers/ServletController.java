@@ -5,17 +5,19 @@ import calculator.WebCalculatorFactory;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedReader;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 
+import static controllers.ControllerConstants.ABS_RANGE;
+import static controllers.ControllerConstants.DIVIDE;
+import static controllers.ControllerConstants.EXPRESSION;
 import static controllers.ControllerConstants.LOCATION;
+import static controllers.ControllerConstants.MINUS;
+import static controllers.ControllerConstants.MISSING_EXPRESSION;
+import static controllers.ControllerConstants.MULTIPLY;
 import static controllers.ControllerConstants.OVER_RANGE;
-import static controllers.ControllerConstants.STATUS_BAD_REQUEST;
-import static controllers.ControllerConstants.STATUS_CREATED;
-import static controllers.ControllerConstants.STATUS_FORBIDDEN;
-import static controllers.ControllerConstants.STATUS_OK;
+import static controllers.ControllerConstants.PLUS;
 import static controllers.ControllerConstants.WRONG_EXPRESSION;
 
 public class ServletController implements Controller {
@@ -23,63 +25,73 @@ public class ServletController implements Controller {
     private static final WebCalculatorFactory FACTORY = new WebCalculatorFactory();
     private static final Calculator CALCULATOR_SERVICE = FACTORY.createCalculator();
 
-    public void getResult(HttpServletRequest httpServletRequest, HttpServletResponse response) {
+    public void getResult(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        HttpSession session = request.getSession();
+        PrintWriter writer = response.getWriter();
 
-        String sessionID = getSessionId(httpServletRequest);
         try {
-            int result = CALCULATOR_SERVICE.calculate(sessionID);
-            PrintWriter printWriter = response.getWriter();
-            printWriter.printf(String.valueOf(result));
+            int result = CALCULATOR_SERVICE.calculate(session);
+            writer.print(result);
             response.setStatus(HttpServletResponse.SC_OK);
-            printWriter.close();
+            writer.close();
         } catch (Exception e) {
-            response.setStatus(HttpServletResponse.SC_CONFLICT);
+            response.sendError(HttpServletResponse.SC_CONFLICT, MISSING_EXPRESSION);
         }
     }
 
 
     public void deleteData(HttpServletRequest request, HttpServletResponse response) {
-        String sessionID = getSessionId(request);
-        String parameterName = getParameterName(request);
-        CALCULATOR_SERVICE.deleteData(sessionID, parameterName);
+        HttpSession session = request.getSession();
+        String attributeName = request.getRequestURI().substring(6);
+        session.removeAttribute(attributeName);
         response.setStatus(HttpServletResponse.SC_NO_CONTENT);
     }
 
 
-    public void putNewData(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        InputStreamReader streamReader = new InputStreamReader(request.getInputStream());
-        BufferedReader bufferedReader = new BufferedReader(streamReader);
-        String paramValue = bufferedReader.readLine();
-        String sessionID = getSessionId(request);
-        String parameterName = getParameterName(request);
+    public void putData(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        HttpSession session = request.getSession();
 
-        int statusCode = CALCULATOR_SERVICE.addData(sessionID, parameterName, paramValue);
-        setStatusCode(statusCode, response);
+        String attribute = request.getRequestURI().substring(6);
+        String value = request.getReader().readLine();
+
+        if (attribute.equalsIgnoreCase(EXPRESSION)) {
+            if (isGoodFormatExpression(value)) {
+                addData(response, session, value, attribute);
+            } else {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST, WRONG_EXPRESSION);
+            }
+        } else {
+            if (!isParameterHasOverLimitValue(value)) {
+                addData(response, session, value, attribute);
+            } else {
+                response.setStatus(HttpServletResponse.SC_FORBIDDEN, OVER_RANGE);
+            }
+        }
+
         String requestURI = request.getRequestURI();
         response.addHeader(LOCATION, requestURI);
-
-        bufferedReader.close();
     }
 
-    private void setStatusCode(int statusCode, HttpServletResponse response) throws IOException {
-        if (statusCode == STATUS_CREATED) {
+    private void addData(HttpServletResponse response, HttpSession session, String value, String attributeName) {
+        if (session.getAttribute(attributeName) == null) {
             response.setStatus(HttpServletResponse.SC_CREATED);
-        } else if (statusCode == STATUS_FORBIDDEN) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, OVER_RANGE);
-        } else if (statusCode == STATUS_BAD_REQUEST) {
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, WRONG_EXPRESSION);
-        } else if (statusCode == STATUS_OK) {
+        } else {
             response.setStatus(HttpServletResponse.SC_OK);
         }
+        session.setAttribute(attributeName, value);
     }
 
-    private String getParameterName(HttpServletRequest request) {
-        return request.getPathInfo()
-                .substring(1);
+    private boolean isGoodFormatExpression(String expression) {
+        return (expression.contains(PLUS) || expression.contains(MINUS) ||
+                expression.contains(DIVIDE) || expression.contains(MULTIPLY));
     }
 
-    private String getSessionId(HttpServletRequest httpServletRequest) {
-        return httpServletRequest.getSession()
-                .getId();
+    private boolean isParameterHasOverLimitValue(String paramValue) {
+        try {
+            int i = Integer.parseInt(paramValue);
+            return Math.abs(i) > ABS_RANGE;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

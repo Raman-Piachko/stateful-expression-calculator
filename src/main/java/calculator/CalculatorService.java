@@ -2,33 +2,24 @@ package calculator;
 
 import com.google.code.mathparser.MathParser;
 import com.google.code.mathparser.MathParserFactory;
-import repository.Repository;
-import repository.RepositoryImpl;
 
+import javax.servlet.http.HttpSession;
 import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-import static controllers.ControllerConstants.ABS_RANGE;
-import static controllers.ControllerConstants.DIVIDE;
 import static controllers.ControllerConstants.EMPTY_SYMBOL;
 import static controllers.ControllerConstants.EXPRESSION;
-import static controllers.ControllerConstants.MINUS;
-import static controllers.ControllerConstants.MULTIPLY;
-import static controllers.ControllerConstants.PLUS;
-import static controllers.ControllerConstants.STATUS_BAD_REQUEST;
-import static controllers.ControllerConstants.STATUS_CREATED;
-import static controllers.ControllerConstants.STATUS_FORBIDDEN;
-import static controllers.ControllerConstants.STATUS_OK;
 import static utils.ConversionUtil.deleteSpacesAndConvertListToString;
 
 
 public class CalculatorService implements Calculator {
-    private static final Repository REPOSITORY = RepositoryImpl.getInstance();
 
     @Override
-    public int calculate(String ID) {
-        String expression = getFinalExpression(ID);
+    public int calculate(HttpSession session) {
+        String expression = getExpression(session);
         MathParser mathParser = MathParserFactory.create();
 
         return mathParser.calculate(expression)
@@ -36,97 +27,51 @@ public class CalculatorService implements Calculator {
                 .intValue();
     }
 
-    @Override
-    public int addData(String ID, String parameterName, String paramValue) {
-        String valueFromRepository = getValueFromRepository(ID, parameterName);
-        if (!isDataExists(ID)) {
-            REPOSITORY.putNewData(ID);
+    private String getExpression(HttpSession session) {
+        String expression = (String) session.getAttribute(EXPRESSION);
+        List<String> expressionList = Arrays.asList(expression.split(EMPTY_SYMBOL));
+
+        Map<String, String> attributeValueMap = getAttributeValueMap(session);
+
+        while (isExpressionWithVariables(attributeValueMap, expressionList)) {
+            convertExpressionWithValue(attributeValueMap, expressionList);
         }
-        int statusCode = getStatusCode(valueFromRepository, parameterName, paramValue);
-        if (!isBadFormatExpression(paramValue, parameterName) && !isParameterHasOverLimitValue(paramValue)) {
-            REPOSITORY.update(ID, parameterName, paramValue);
-        }
-        return statusCode;
+        return deleteSpacesAndConvertListToString(expressionList);
+
     }
 
-    @Override
-    public void deleteData(String ID, String parameterName) {
-        Map<String, String> data = REPOSITORY.getDataByID(ID);
+    private Map<String, String> getAttributeValueMap(HttpSession session) {
+        Enumeration<String> attributeNames = session.getAttributeNames();
+        Map<String, String> attributeValueMap = new ConcurrentHashMap<>();
 
-        data.remove(parameterName);
-    }
-
-    private String getFinalExpression(String ID) {
-        List<String> expression = getExpression(ID);
-        Map<String, String> repositoryData = REPOSITORY.getDataByID(ID);
-
-        while (isExpressionWithVariables(repositoryData, expression)) {
-            convertExpressionWithValue(expression, ID);
+        while (attributeNames.hasMoreElements()) {
+            String attributeName = attributeNames.nextElement();
+            attributeValueMap.put(attributeName, (String) session.getAttribute(attributeName));
         }
 
-        return deleteSpacesAndConvertListToString(expression);
+        return attributeValueMap;
     }
 
-    private List<String> getExpression(String ID) {
-        Map<String, String> data = REPOSITORY.getDataByID(ID);
 
-        return Arrays.asList(data
-                .get(EXPRESSION)
-                .split(EMPTY_SYMBOL));
-    }
-
-    private boolean isDataExists(String ID) {
-        return REPOSITORY.getRepositoryData().containsKey(ID);
-    }
-
-    private void convertExpressionWithValue(List<String> expression, String ID) {
-        Map<String, String> data = REPOSITORY.getDataByID(ID);
-
-        for (int i = 0; i < expression.size(); i++) {
-            String key = expression.get(i);
-            if (data.containsKey(key)) {
-                expression.set(i, data.get(key));
+    private void convertExpressionWithValue(Map<String, String> parameters, List<String> expression) {
+        for (String item : expression) {
+            for (Map.Entry<String, String> entry : parameters.entrySet()) {
+                String key = entry.getKey();
+                String value = entry.getValue();
+                if (key.equalsIgnoreCase(item)) {
+                    int replaceableIndex = expression.indexOf(item);
+                    expression.set(replaceableIndex, value);
+                }
             }
         }
     }
 
-    private boolean isExpressionWithVariables(Map map, List<String> expression) {
-        return expression.stream().anyMatch(map::containsKey);
-    }
-
-    private String getValueFromRepository(String ID, String parameterName) {
-        Map<String, String> data = REPOSITORY.getDataByID(ID);
-        if (data == null) {
-            return null;
-        } else {
-            return data.get(parameterName);
+    private boolean isExpressionWithVariables(Map<String, String> parameters, List<String> expression) {
+        for (String s : expression) {
+            if (parameters.containsKey(s)) {
+                return true;
+            }
         }
-    }
-
-    private boolean isBadFormatExpression(String paramValue, String parameterName) {
-        return parameterName.equals(EXPRESSION) &&
-                !(paramValue.contains(PLUS) || paramValue.contains(MINUS) ||
-                        paramValue.contains(DIVIDE) || paramValue.contains(MULTIPLY));
-    }
-
-    private boolean isParameterHasOverLimitValue(String paramValue) {
-        try {
-            int i = Integer.parseInt(paramValue);
-            return Math.abs(i) > ABS_RANGE;
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
-    private int getStatusCode(String valueFromRepository, String parameterName, String paramValue) {
-        if (valueFromRepository == null) {
-            return STATUS_CREATED;
-        } else if (isParameterHasOverLimitValue(paramValue)) {
-            return STATUS_FORBIDDEN;
-        } else if (isBadFormatExpression(paramValue, parameterName)) {
-            return STATUS_BAD_REQUEST;
-        } else {
-            return STATUS_OK;
-        }
+        return false;
     }
 }
