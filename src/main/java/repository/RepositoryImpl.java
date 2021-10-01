@@ -23,25 +23,24 @@ public final class RepositoryImpl implements Repository {
         repositoryData.put(key, new ConcurrentHashMap<>());
     }
 
-    public Map<String, Map<String, String>> getRepositoryData() {
-        return repositoryData;
-    }
-
-    public Map<String, String> getDataByID(String sessionID) {
-        return getRepositoryData().get(sessionID);
-    }
-
-    public void update(String ID, String parameterName, String paramValue) {
-        getDataByID(ID)
+    public void update(String sessionID, String parameterName, String paramValue) {
+        repositoryData.get(sessionID)
                 .put(parameterName, paramValue);
     }
 
+    public Map<String, String> getDataByID(String sessionID) {
+        return repositoryData.get(sessionID);
+    }
+
     public boolean existData(String id) {
-        return getRepositoryData().containsKey(id);
+        return repositoryData.containsKey(id);
     }
 
     public Optional<String> getValue(String id, String parameterName) {
         Map<String, String> data = getDataByID(id);
+        if (data == null) {
+            return Optional.empty();
+        }
         return Optional.ofNullable(data.get(parameterName));
     }
 

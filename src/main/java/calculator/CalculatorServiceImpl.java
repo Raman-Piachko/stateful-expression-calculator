@@ -4,9 +4,9 @@ import com.google.code.mathparser.MathParser;
 import com.google.code.mathparser.MathParserFactory;
 import repository.Repository;
 import repository.RepositoryFactory;
-import statusCode.exception.BadRequestException;
-import statusCode.exception.ForbiddenException;
-import statusCode.goodStatus.StatusCode;
+import responseCodes.exception.BadRequestException;
+import responseCodes.exception.ForbiddenException;
+import responseCodes.codes.StatusCode;
 
 import java.util.Arrays;
 import java.util.List;
@@ -27,12 +27,11 @@ public class CalculatorServiceImpl implements CalculatorService {
     private static final RepositoryFactory REPOSITORY_FACTORY = new RepositoryFactory();
     private static final Repository REPOSITORY = REPOSITORY_FACTORY.createRepository();
 
-
     @Override
     public int calculate(String id) {
         String expression = getFinalExpression(id);
         MathParser mathParser = MathParserFactory.create();
-       System.console().printf(expression);
+
         return mathParser.calculate(expression)
                 .doubleValue()
                 .intValue();
@@ -45,7 +44,11 @@ public class CalculatorServiceImpl implements CalculatorService {
             REPOSITORY.putNewData(id);
         }
         StatusCode statusCode = getStatusCode(valueFromRepository, parameterName, paramValue);
-        if (isValidExpression(paramValue, parameterName) && !isParameterHasOverLimitValue(paramValue)) {
+        if (parameterName.equalsIgnoreCase(EXPRESSION)) {
+            if (isValidExpression(paramValue, parameterName)) {
+                REPOSITORY.update(id, parameterName, paramValue);
+            }
+        } else if (!isParameterHasOverLimitValue(paramValue)) {
             REPOSITORY.update(id, parameterName, paramValue);
         }
         return statusCode;
@@ -86,12 +89,12 @@ public class CalculatorServiceImpl implements CalculatorService {
         }
     }
 
-    private boolean isExpressionWithVariables(Map map, List<String> expression) {
+    private boolean isExpressionWithVariables(Map<String, String> map, List<String> expression) {
         return expression.stream().anyMatch(map::containsKey);
     }
 
     private boolean isValidExpression(String paramValue, String parameterName) {
-        return parameterName.equals(EXPRESSION)
+        return parameterName.equalsIgnoreCase(EXPRESSION)
                 && isSpecialSymbol(paramValue);
     }
 
@@ -112,11 +115,11 @@ public class CalculatorServiceImpl implements CalculatorService {
     }
 
     private StatusCode getStatusCode(Optional<String> valueFromRepository, String parameterName, String paramValue) throws Exception {
-        if (!valueFromRepository.isPresent()) {
+        if (valueFromRepository.isEmpty()) {
             return StatusCode.CREATED;
         } else if (isParameterHasOverLimitValue(paramValue)) {
             throw new ForbiddenException();
-        } else if (!isValidExpression(paramValue, parameterName)) {
+        } else if (parameterName.equalsIgnoreCase(EXPRESSION) && !isValidExpression(paramValue, parameterName)) {
             throw new BadRequestException();
         } else {
             return StatusCode.INSERTED;

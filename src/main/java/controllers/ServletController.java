@@ -2,9 +2,9 @@ package controllers;
 
 import calculator.CalculatorService;
 import calculator.WebCalculatorFactory;
-import statusCode.exception.BadRequestException;
-import statusCode.exception.ForbiddenException;
-import statusCode.goodStatus.StatusCode;
+import responseCodes.exception.BadRequestException;
+import responseCodes.exception.ForbiddenException;
+import responseCodes.codes.StatusCode;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -20,13 +20,14 @@ import static controllers.ControllerConstants.WRONG_EXPRESSION;
 public class ServletController implements Controller {
 
     private static final WebCalculatorFactory FACTORY = new WebCalculatorFactory();
-    private static CalculatorService CALCULATOR_SERVICE = FACTORY.createCalculator();
-    ;
+    private static CalculatorService calculatorService;
 
     public void getResult(HttpServletRequest httpServletRequest, HttpServletResponse response) {
+        calculatorService = FACTORY.createCalculator();
         String sessionID = getSessionId(httpServletRequest);
+
         try {
-            int result = CALCULATOR_SERVICE.calculate(sessionID);
+            int result = calculatorService.calculate(sessionID);
             PrintWriter printWriter = response.getWriter();
             printWriter.printf(String.valueOf(result));
             response.setStatus(HttpServletResponse.SC_OK);
@@ -34,38 +35,34 @@ public class ServletController implements Controller {
         } catch (Exception e) {
             response.setStatus(HttpServletResponse.SC_CONFLICT);
         }
-
     }
 
     public void deleteData(HttpServletRequest request, HttpServletResponse response) {
-
+        calculatorService = FACTORY.createCalculator();
         String sessionID = getSessionId(request);
         String parameterName = getParameterName(request);
-        CALCULATOR_SERVICE.deleteData(sessionID, parameterName);
+
+        calculatorService.deleteData(sessionID, parameterName);
         response.setStatus(HttpServletResponse.SC_NO_CONTENT);
     }
 
 
     public void putNewData(HttpServletRequest request, HttpServletResponse response) throws IOException {
-
+        calculatorService = FACTORY.createCalculator();
         InputStreamReader streamReader = new InputStreamReader(request.getInputStream());
         BufferedReader bufferedReader = new BufferedReader(streamReader);
         String paramValue = bufferedReader.readLine();
         String sessionID = getSessionId(request);
         String parameterName = getParameterName(request);
 
-        try {
-            StatusCode statusCode = CALCULATOR_SERVICE.addData(sessionID, parameterName, paramValue);
+        try (streamReader; bufferedReader) {
+            StatusCode statusCode = calculatorService.addData(sessionID, parameterName, paramValue);
             setStatusCode(statusCode, response);
+            String requestURI = request.getRequestURI();
+            response.addHeader(LOCATION, requestURI);
         } catch (Exception e) {
             setErrorStatusCode(e, response);
         }
-
-        String requestURI = request.getRequestURI();
-        response.addHeader(LOCATION, requestURI);
-
-        streamReader.close();
-        bufferedReader.close();
     }
 
     private void setErrorStatusCode(Exception e, HttpServletResponse response) throws IOException {
@@ -76,7 +73,7 @@ public class ServletController implements Controller {
         }
     }
 
-    private void setStatusCode(StatusCode statusCode, HttpServletResponse response) throws IOException {
+    private void setStatusCode(StatusCode statusCode, HttpServletResponse response) {
         if (statusCode == StatusCode.CREATED) {
             response.setStatus(HttpServletResponse.SC_CREATED);
         } else if (statusCode == StatusCode.INSERTED) {

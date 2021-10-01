@@ -1,4 +1,4 @@
-package statusCode.goodStatus;
+package responseCodes.codes;
 
 public enum StatusCode {
     CREATED, INSERTED

@@ -5,8 +5,6 @@ import java.util.Optional;
 
 public interface Repository {
 
-    Map<String, Map<String, String>> getRepositoryData();
-
     void putNewData(String sessionID);
 
     void update(String sessionID, String parameterName, String paramValue);
