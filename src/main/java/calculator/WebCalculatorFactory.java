@@ -4,7 +4,7 @@ public class WebCalculatorFactory {
     public WebCalculatorFactory() {
     }
 
-    public Calculator createCalculator() {
-        return new CalculatorService();
+    public CalculatorService createCalculator() {
+        return new CalculatorServiceImpl();
     }
 }

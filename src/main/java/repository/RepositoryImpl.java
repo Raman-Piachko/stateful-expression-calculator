@@ -1,6 +1,7 @@
 package repository;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class RepositoryImpl implements Repository {
@@ -26,10 +27,6 @@ public final class RepositoryImpl implements Repository {
         return repositoryData;
     }
 
-    public void setRepositoryData(Map<String, Map<String, String>> repositoryData) {
-        this.repositoryData = repositoryData;
-    }
-
     public Map<String, String> getDataByID(String sessionID) {
         return getRepositoryData().get(sessionID);
     }
@@ -37,5 +34,20 @@ public final class RepositoryImpl implements Repository {
     public void update(String ID, String parameterName, String paramValue) {
         getDataByID(ID)
                 .put(parameterName, paramValue);
+    }
+
+    public boolean existData(String id) {
+        return getRepositoryData().containsKey(id);
+    }
+
+    public Optional<String> getValue(String id, String parameterName) {
+        Map<String, String> data = getDataByID(id);
+        return Optional.ofNullable(data.get(parameterName));
+    }
+
+    public void removeData(String id, String parameterName) {
+        Map<String, String> data = getDataByID(id);
+
+        data.remove(parameterName);
     }
 }
