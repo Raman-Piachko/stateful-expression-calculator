@@ -2,30 +2,34 @@ package calculator;
 
 import com.google.code.mathparser.MathParser;
 import com.google.code.mathparser.MathParserFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import repository.Repository;
 import repository.RepositoryFactory;
+import responseCodes.codes.StatusCode;
 import responseCodes.exception.BadRequestException;
 import responseCodes.exception.ForbiddenException;
-import responseCodes.codes.StatusCode;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static controllers.ControllerConstants.ABS_RANGE;
-import static controllers.ControllerConstants.DIVIDE;
-import static controllers.ControllerConstants.EMPTY_SYMBOL;
-import static controllers.ControllerConstants.EXPRESSION;
-import static controllers.ControllerConstants.MINUS;
-import static controllers.ControllerConstants.MULTIPLY;
-import static controllers.ControllerConstants.PLUS;
+import static constants.ControllerConstants.ABS_RANGE;
+import static constants.ControllerConstants.DIVIDE;
+import static constants.ControllerConstants.EMPTY_SYMBOL;
+import static constants.ControllerConstants.EXPRESSION;
+import static constants.ControllerConstants.MINUS;
+import static constants.ControllerConstants.MULTIPLY;
+import static constants.ControllerConstants.PARSING_INFO;
+import static constants.ControllerConstants.PLUS;
 import static utils.ConversionUtil.deleteSpacesAndConvertListToString;
 
 
 public class CalculatorServiceImpl implements CalculatorService {
     private static final RepositoryFactory REPOSITORY_FACTORY = new RepositoryFactory();
     private static final Repository REPOSITORY = REPOSITORY_FACTORY.createRepository();
+    private static final Logger logger = LogManager.getLogger(CalculatorServiceImpl.class);
 
     @Override
     public int calculate(String id) {
@@ -44,11 +48,9 @@ public class CalculatorServiceImpl implements CalculatorService {
             REPOSITORY.putNewData(id);
         }
         StatusCode statusCode = getStatusCode(valueFromRepository, parameterName, paramValue);
-        if (parameterName.equalsIgnoreCase(EXPRESSION)) {
-            if (isValidExpression(paramValue, parameterName)) {
-                REPOSITORY.update(id, parameterName, paramValue);
-            }
-        } else if (!isParameterHasOverLimitValue(paramValue)) {
+        if (isValidExpression(paramValue, parameterName)) {
+            REPOSITORY.update(id, parameterName, paramValue);
+        } else if (isParameterHasOverLimitValue(paramValue)) {
             REPOSITORY.update(id, parameterName, paramValue);
         }
         return statusCode;
@@ -108,21 +110,25 @@ public class CalculatorServiceImpl implements CalculatorService {
     private boolean isParameterHasOverLimitValue(String paramValue) {
         try {
             int i = Integer.parseInt(paramValue);
-            return Math.abs(i) > ABS_RANGE;
+            return Math.abs(i) <= ABS_RANGE;
         } catch (Exception e) {
-            return false;
+            logger.info(String.format(PARSING_INFO, paramValue));
+            return true;
         }
+
     }
 
     private StatusCode getStatusCode(Optional<String> valueFromRepository, String parameterName, String paramValue) throws Exception {
-        if (valueFromRepository.isEmpty()) {
-            return StatusCode.CREATED;
+        if (parameterName.equalsIgnoreCase(EXPRESSION)) {
+            if (isValidExpression(paramValue, parameterName)) {
+                if (valueFromRepository.isEmpty()) {
+                    return StatusCode.CREATED;
+                } else return StatusCode.INSERTED;
+            } else throw new BadRequestException();
         } else if (isParameterHasOverLimitValue(paramValue)) {
-            throw new ForbiddenException();
-        } else if (parameterName.equalsIgnoreCase(EXPRESSION) && !isValidExpression(paramValue, parameterName)) {
-            throw new BadRequestException();
-        } else {
-            return StatusCode.INSERTED;
-        }
+            if (valueFromRepository.isEmpty()) {
+                return StatusCode.CREATED;
+            } else return StatusCode.INSERTED;
+        } else throw new ForbiddenException();
     }
 }

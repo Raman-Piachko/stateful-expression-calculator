@@ -7,7 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class RepositoryImpl implements Repository {
     private static Repository repositoryImpl;
 
-    private Map<String, Map<String, String>> repositoryData = new ConcurrentHashMap<>();
+    private static final Map<String, Map<String, String>> REPOSITORY_DATA = new ConcurrentHashMap<>();
 
     private RepositoryImpl() {
     }
@@ -20,20 +20,20 @@ public final class RepositoryImpl implements Repository {
     }
 
     public void putNewData(String key) {
-        repositoryData.put(key, new ConcurrentHashMap<>());
+        REPOSITORY_DATA.put(key, new ConcurrentHashMap<>());
     }
 
     public void update(String sessionID, String parameterName, String paramValue) {
-        repositoryData.get(sessionID)
+        REPOSITORY_DATA.get(sessionID)
                 .put(parameterName, paramValue);
     }
 
     public Map<String, String> getDataByID(String sessionID) {
-        return repositoryData.get(sessionID);
+        return REPOSITORY_DATA.get(sessionID);
     }
 
     public boolean existData(String id) {
-        return repositoryData.containsKey(id);
+        return REPOSITORY_DATA.containsKey(id);
     }
 
     public Optional<String> getValue(String id, String parameterName) {

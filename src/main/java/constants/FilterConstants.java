@@ -1,4 +1,4 @@
-package filters;
+package constants;
 
 public final class FilterConstants {
     private FilterConstants() {

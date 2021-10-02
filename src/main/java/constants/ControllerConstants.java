@@ -1,4 +1,4 @@
-package controllers;
+package constants;
 
 public final class ControllerConstants {
 
@@ -16,6 +16,5 @@ public final class ControllerConstants {
     public static final String OVER_RANGE = "VALUE IS OVER RANGE";
     public static final String WRONG_EXPRESSION = "WRONG FORMAT EXPRESSION";
     public static final String LOCATION = "Location";
-    public static final int STATUS_FORBIDDEN = 403;
-
+    public static final String PARSING_INFO = "%s cannot be parsed to Integer";
 }

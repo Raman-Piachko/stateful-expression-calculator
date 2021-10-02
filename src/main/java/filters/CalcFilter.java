@@ -9,8 +9,8 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import java.io.IOException;
 
-import static filters.FilterConstants.REMOTE_HOST;
-import static filters.FilterConstants.REMOTE_PORT;
+import static constants.FilterConstants.REMOTE_HOST;
+import static constants.FilterConstants.REMOTE_PORT;
 
 public class CalcFilter implements Filter {
     private FilterConfig filterConfig;

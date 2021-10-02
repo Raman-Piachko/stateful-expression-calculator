@@ -1,4 +1,4 @@
-package listeners;
+package constants;
 
 public final class ListenerConstants {
     private ListenerConstants() {

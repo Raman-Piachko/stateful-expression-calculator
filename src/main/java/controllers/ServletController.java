@@ -2,9 +2,9 @@ package controllers;
 
 import calculator.CalculatorService;
 import calculator.WebCalculatorFactory;
+import responseCodes.codes.StatusCode;
 import responseCodes.exception.BadRequestException;
 import responseCodes.exception.ForbiddenException;
-import responseCodes.codes.StatusCode;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -13,9 +13,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 
-import static controllers.ControllerConstants.LOCATION;
-import static controllers.ControllerConstants.OVER_RANGE;
-import static controllers.ControllerConstants.WRONG_EXPRESSION;
+import static constants.ControllerConstants.LOCATION;
+import static constants.ControllerConstants.OVER_RANGE;
+import static constants.ControllerConstants.WRONG_EXPRESSION;
 
 public class ServletController implements Controller {
 
