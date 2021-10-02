@@ -1,7 +1,7 @@
 package calculator;
 
-import javax.servlet.http.HttpSession;
+import java.util.Map;
 
 public interface Calculator {
-    int calculate(HttpSession session);
+    int calculate(String expression, Map<String, String> attributeValueMap);
 }
