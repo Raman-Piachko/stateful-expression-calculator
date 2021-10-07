@@ -43,12 +43,11 @@ public class ServletController implements Controller {
         String expression = (String) session.getAttribute(EXPRESSION);
         Map<String, String> attributeValueMap = getAttributeValueMap(session);
 
-        try {
-            PrintWriter writer = response.getWriter();
+
+        try (PrintWriter writer = response.getWriter()) {
             int result = CALCULATOR_SERVICE.calculate(expression, attributeValueMap);
             writer.print(result);
             response.setStatus(HttpServletResponse.SC_OK);
-            writer.close();
         } catch (Exception e) {
             logger.info(String.format(CALCULATE_EXCEPTION, expression));
             response.sendError(HttpServletResponse.SC_CONFLICT, MISSING_EXPRESSION);
@@ -68,24 +67,27 @@ public class ServletController implements Controller {
         String value;
         try (BufferedReader bufferedReader = request.getReader()) {
             value = bufferedReader.readLine();
-        }
 
-        if (EXPRESSION.equalsIgnoreCase(attribute)) {
-            if (isGoodFormatExpression(value)) {
-                addData(response, session, value, attribute);
+            if (EXPRESSION.equalsIgnoreCase(attribute)) {
+                if (isGoodFormatExpression(value)) {
+                    addData(response, session, value, attribute);
+                } else {
+                    response.sendError(HttpServletResponse.SC_BAD_REQUEST, WRONG_EXPRESSION);
+                }
             } else {
-                response.sendError(HttpServletResponse.SC_BAD_REQUEST, WRONG_EXPRESSION);
+                if (!isParameterHasOverLimitValue(value)) {
+                    addData(response, session, value, attribute);
+                } else {
+                    response.sendError(HttpServletResponse.SC_FORBIDDEN, OVER_RANGE);
+                }
             }
-        } else {
-            if (!isParameterHasOverLimitValue(value)) {
-                addData(response, session, value, attribute);
-            } else {
-                response.sendError(HttpServletResponse.SC_FORBIDDEN, OVER_RANGE);
-            }
-        }
 
-        String requestURI = request.getRequestURI();
-        response.addHeader(LOCATION, requestURI);
+            String requestURI = request.getRequestURI();
+            response.addHeader(LOCATION, requestURI);
+        } catch (Exception e) {
+            logger.info(e);
+            response.sendError(HttpServletResponse.SC_CONFLICT);
+        }
     }
 
     private Map<String, String> getAttributeValueMap(HttpSession session) {
