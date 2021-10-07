@@ -1,8 +1,8 @@
 package servlets;
 
 
+import calculator.WebCalculatorFactory;
 import controllers.Controller;
-import controllers.ServletController;
 
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -12,7 +12,8 @@ import java.io.IOException;
 
 @WebServlet(urlPatterns = "/calc/*")
 public class CalcServlet extends HttpServlet {
-    private static final Controller servletController = new ServletController();
+    private static final WebCalculatorFactory factory = new WebCalculatorFactory();
+    private static final Controller servletController = factory.createServletController();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {

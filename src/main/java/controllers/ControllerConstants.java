@@ -20,4 +20,5 @@ public final class ControllerConstants {
     public static final String MISSING_EXPRESSION = "The expression is missing";
     public static final String PARSING_INFO = "%s cannot be parsed to Integer";
     public static final String CALCULATE_EXCEPTION = "SOMETHING WAS WRONG AT CALCULATE EXPRESSION: EXPRESSION IS -- %s";
+    public static final String BAD_URL = "BAD URL";
 }

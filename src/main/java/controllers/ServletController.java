@@ -2,12 +2,14 @@ package controllers;
 
 import calculator.Calculator;
 import calculator.WebCalculatorFactory;
+import exception.BadRequestException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Enumeration;
@@ -15,6 +17,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static controllers.ControllerConstants.ABS_RANGE;
+import static controllers.ControllerConstants.BAD_URL;
 import static controllers.ControllerConstants.CALCULATE_EXCEPTION;
 import static controllers.ControllerConstants.DIVIDE;
 import static controllers.ControllerConstants.EXPRESSION;
@@ -39,16 +42,16 @@ public class ServletController implements Controller {
 
         String expression = (String) session.getAttribute(EXPRESSION);
         Map<String, String> attributeValueMap = getAttributeValueMap(session);
-        PrintWriter writer = response.getWriter();
+
         try {
+            PrintWriter writer = response.getWriter();
             int result = CALCULATOR_SERVICE.calculate(expression, attributeValueMap);
             writer.print(result);
             response.setStatus(HttpServletResponse.SC_OK);
+            writer.close();
         } catch (Exception e) {
             logger.info(String.format(CALCULATE_EXCEPTION, expression));
             response.sendError(HttpServletResponse.SC_CONFLICT, MISSING_EXPRESSION);
-        } finally {
-            writer.close();
         }
     }
 
@@ -62,9 +65,12 @@ public class ServletController implements Controller {
     public void putData(HttpServletRequest request, HttpServletResponse response) throws IOException {
         HttpSession session = request.getSession();
         String attribute = getItemNameFromURI(request);
-        String value = request.getReader().readLine();
+        String value;
+        try (BufferedReader bufferedReader = request.getReader()) {
+            value = bufferedReader.readLine();
+        }
 
-        if (attribute.equalsIgnoreCase(EXPRESSION)) {
+        if (EXPRESSION.equalsIgnoreCase(attribute)) {
             if (isGoodFormatExpression(value)) {
                 addData(response, session, value, attribute);
             } else {
@@ -95,7 +101,14 @@ public class ServletController implements Controller {
     }
 
     private String getItemNameFromURI(HttpServletRequest request) {
-        return request.getRequestURI().substring(URL_SUBSTRING);
+        String itemName = request.getRequestURI();
+        String substring;
+        if (itemName == null || itemName.isEmpty() || itemName.trim().isEmpty()) {
+            throw new BadRequestException(BAD_URL);
+        } else {
+            substring = itemName.substring(URL_SUBSTRING);
+        }
+        return substring;
     }
 
     private void addData(HttpServletResponse response, HttpSession session, String value, String attributeName) {
