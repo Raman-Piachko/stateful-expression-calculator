@@ -5,10 +5,9 @@ import com.google.code.mathparser.MathParserFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import repository.Repository;
-import repository.RepositoryFactory;
-import responseCodes.codes.StatusCode;
-import responseCodes.exception.BadRequestException;
-import responseCodes.exception.ForbiddenException;
+import response.codes.codes.StatusCode;
+import response.codes.exception.BadRequestException;
+import response.codes.exception.ForbiddenException;
 
 import java.util.Arrays;
 import java.util.List;
@@ -27,9 +26,9 @@ import static utils.ConversionUtil.deleteSpacesAndConvertListToString;
 
 
 public class CalculatorServiceImpl implements CalculatorService {
-    private static final RepositoryFactory REPOSITORY_FACTORY = new RepositoryFactory();
-    private static final Repository REPOSITORY = REPOSITORY_FACTORY.createRepository();
-    private static final Logger logger = LogManager.getLogger(CalculatorServiceImpl.class);
+    private static final WebCalculatorFactory FACTORY = new WebCalculatorFactory();
+    private static final Repository REPOSITORY = FACTORY.createRepository();
+    private static final Logger LOGGER = LogManager.getLogger(CalculatorServiceImpl.class);
 
     @Override
     public int calculate(String id) {
@@ -44,9 +43,8 @@ public class CalculatorServiceImpl implements CalculatorService {
     @Override
     public StatusCode addData(String id, String parameterName, String paramValue) throws Exception {
         Optional<String> valueFromRepository = REPOSITORY.getValue(id, parameterName);
-        if (!REPOSITORY.existData(id)) {
-            REPOSITORY.putNewData(id);
-        }
+        REPOSITORY.insertNewData(id);
+
         StatusCode statusCode = getStatusCode(valueFromRepository, parameterName, paramValue);
         if (isValidExpression(paramValue, parameterName)) {
             REPOSITORY.update(id, parameterName, paramValue);
@@ -112,7 +110,7 @@ public class CalculatorServiceImpl implements CalculatorService {
             int i = Integer.parseInt(paramValue);
             return Math.abs(i) <= ABS_RANGE;
         } catch (Exception e) {
-            logger.info(String.format(PARSING_INFO, paramValue));
+            LOGGER.info(String.format(PARSING_INFO, paramValue));
             return true;
         }
 

@@ -1,6 +1,6 @@
 package calculator;
 
-import responseCodes.codes.StatusCode;
+import response.codes.codes.StatusCode;
 
 public interface CalculatorService {
     int calculate(String expression);

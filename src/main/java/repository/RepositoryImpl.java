@@ -19,23 +19,26 @@ public final class RepositoryImpl implements Repository {
         return repositoryImpl;
     }
 
-    public void putNewData(String key) {
-        REPOSITORY_DATA.put(key, new ConcurrentHashMap<>());
+    @Override
+    public void insertNewData(String id) {
+        if (!existData(id)) {
+            putNewData(id);
+        }
     }
 
+
+    @Override
     public void update(String sessionID, String parameterName, String paramValue) {
         REPOSITORY_DATA.get(sessionID)
                 .put(parameterName, paramValue);
     }
 
+    @Override
     public Map<String, String> getDataByID(String sessionID) {
         return REPOSITORY_DATA.get(sessionID);
     }
 
-    public boolean existData(String id) {
-        return REPOSITORY_DATA.containsKey(id);
-    }
-
+    @Override
     public Optional<String> getValue(String id, String parameterName) {
         Map<String, String> data = getDataByID(id);
         if (data == null) {
@@ -44,9 +47,18 @@ public final class RepositoryImpl implements Repository {
         return Optional.ofNullable(data.get(parameterName));
     }
 
+    @Override
     public void removeData(String id, String parameterName) {
         Map<String, String> data = getDataByID(id);
 
         data.remove(parameterName);
+    }
+
+    private void putNewData(String key) {
+        REPOSITORY_DATA.put(key, new ConcurrentHashMap<>());
+    }
+
+    private boolean existData(String id) {
+        return REPOSITORY_DATA.containsKey(id);
     }
 }
