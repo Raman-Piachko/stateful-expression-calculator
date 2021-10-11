@@ -28,23 +28,20 @@ public final class RepositoryImpl implements Repository {
 
 
     @Override
-    public void update(String sessionID, String parameterName, String paramValue) {
-        REPOSITORY_DATA.get(sessionID)
-                .put(parameterName, paramValue);
+    public void update(String id, String parameterName, String paramValue) {
+        Map<String, String> stringStringMap = REPOSITORY_DATA.get(id);
+        stringStringMap.put(parameterName, paramValue);
     }
 
     @Override
-    public Map<String, String> getDataByID(String sessionID) {
-        return REPOSITORY_DATA.get(sessionID);
+    public Map<String, String> getDataByID(String id) {
+        return REPOSITORY_DATA.get(id);
     }
 
     @Override
     public Optional<String> getValue(String id, String parameterName) {
-        Map<String, String> data = getDataByID(id);
-        if (data == null) {
-            return Optional.empty();
-        }
-        return Optional.ofNullable(data.get(parameterName));
+        return Optional.ofNullable(getDataByID(id))
+                .map(data -> data.get(parameterName));
     }
 
     @Override

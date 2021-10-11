@@ -44,13 +44,9 @@ public class CalculatorServiceImpl implements CalculatorService {
     public StatusCode addData(String id, String parameterName, String paramValue) throws Exception {
         Optional<String> valueFromRepository = REPOSITORY.getValue(id, parameterName);
         REPOSITORY.insertNewData(id);
-
         StatusCode statusCode = getStatusCode(valueFromRepository, parameterName, paramValue);
-        if (isValidExpression(paramValue, parameterName)) {
-            REPOSITORY.update(id, parameterName, paramValue);
-        } else if (isParameterHasOverLimitValue(paramValue)) {
-            REPOSITORY.update(id, parameterName, paramValue);
-        }
+        REPOSITORY.update(id, parameterName, paramValue);
+
         return statusCode;
     }
 
@@ -73,8 +69,8 @@ public class CalculatorServiceImpl implements CalculatorService {
     private List<String> getExpression(String id) {
         Map<String, String> data = REPOSITORY.getDataByID(id);
 
-        return Arrays.asList(data
-                .get(EXPRESSION)
+        String expression = data.get(EXPRESSION);
+        return Arrays.asList(expression
                 .split(EMPTY_SYMBOL));
     }
 
@@ -93,9 +89,12 @@ public class CalculatorServiceImpl implements CalculatorService {
         return expression.stream().anyMatch(map::containsKey);
     }
 
-    private boolean isValidExpression(String paramValue, String parameterName) {
-        return parameterName.equalsIgnoreCase(EXPRESSION)
-                && isSpecialSymbol(paramValue);
+    private boolean isValidExpression(String paramValue) {
+        return isSpecialSymbol(paramValue);
+    }
+
+    private boolean isExpressionName(String parameterName) {
+        return EXPRESSION.equalsIgnoreCase(parameterName);
     }
 
     private boolean isSpecialSymbol(String paramValue) {
@@ -117,8 +116,8 @@ public class CalculatorServiceImpl implements CalculatorService {
     }
 
     private StatusCode getStatusCode(Optional<String> valueFromRepository, String parameterName, String paramValue) throws Exception {
-        if (parameterName.equalsIgnoreCase(EXPRESSION)) {
-            if (isValidExpression(paramValue, parameterName)) {
+        if (isExpressionName(parameterName)) {
+            if (isValidExpression(paramValue)) {
                 if (valueFromRepository.isEmpty()) {
                     return StatusCode.CREATED;
                 } else return StatusCode.INSERTED;

@@ -17,4 +17,5 @@ public final class ControllerConstants {
     public static final String WRONG_EXPRESSION = "WRONG FORMAT EXPRESSION";
     public static final String LOCATION = "Location";
     public static final String PARSING_INFO = "%s cannot be parsed to Integer";
+    public static final String ERROR_MESSAGE = "Something went wrong";
 }
